@@ -11,15 +11,15 @@ from TTS.utils.audio import AudioProcessor
 
 output_path = os.path.dirname(os.path.abspath(__file__))
 dataset_config = BaseDatasetConfig(
-    formatter="ljspeech", meta_file_train="metadata.csv", path=os.path.join(output_path, "../LJSpeech-1.1/")
+    formatter="yuanshen", meta_file_train="yuanshen.json", path="/root/trainDataset/"
 )
 audio_config = VitsAudioConfig(
-    sample_rate=22050, win_length=1024, hop_length=256, num_mels=80, mel_fmin=0, mel_fmax=None
+    sample_rate=48000, win_length=1024, hop_length=256, num_mels=80, mel_fmin=0, mel_fmax=None
 )
 
 config = VitsConfig(
     audio=audio_config,
-    run_name="vits_ljspeech",
+    run_name="vits_yuanshen",
     batch_size=32,
     eval_batch_size=16,
     batch_group_size=5,
@@ -28,9 +28,9 @@ config = VitsConfig(
     run_eval=True,
     test_delay_epochs=-1,
     epochs=1000,
-    text_cleaner="english_cleaners",
+    text_cleaner="chinese_mandarin_cleaners",
     use_phonemes=True,
-    phoneme_language="en-us",
+    phoneme_language="zh-cn",
     phoneme_cache_path=os.path.join(output_path, "phoneme_cache"),
     compute_input_seq_cache=True,
     print_step=25,

@@ -7,11 +7,57 @@ from typing import List
 
 import pandas as pd
 from tqdm import tqdm
+import json
+import librosa
+import numpy as np
+import wavfile
 
 ########################
 # DATASETS
 ########################
 
+def resample(file):
+    sampleRate = 22050
+    wav, sr = librosa.load(file, sr=None)
+    wav, _ = librosa.effects.trim(wav, top_db=20)
+    peak = np.abs(wav).max()
+    if peak > 1.0:
+        wav = 0.98 * wav / peak
+    wav2 = librosa.resample(wav, orig_sr=sr, target_sr=sampleRate)
+    wav2 /= max(wav2.max(), -wav2.min())
+    os.remove(file)
+    wavfile.write(
+        file,
+        sampleRate,
+        (wav2 * np.iinfo(np.int16).max).astype(np.int16)
+    )
+
+def yuanshen(root_path, meta_file, **kwargs):
+    items = []
+    mengpaidict = {}
+    filepath = os.path.join(root_path, meta_file)
+    # ensure there are 4 columns for every line
+    with open(filepath, "r", encoding="utf8") as f:
+        datasetDic = json.load(f)        
+    # filterList = filter(lambda item: item.npcName == '派蒙', datasetList)
+    # filterList = [item for item in datasetList if item.npcName == '派蒙']
+    for k,v in datasetDic.items():
+        try:
+            if not v['language'] == 'CHS' or not v['npcName'] == '派蒙':
+                continue
+            fileName = v['fileName'].split("\\")[-1].replace(".wem", ".wav")
+            filePath = os.path.join(root_path, "mengpai_22050", fileName)
+            if os.path.exists(filePath):
+                # resample(filePath)
+                items.append({"text": v['text'], "audio_file": filePath, "speaker_name": 'paimon', "root_path": root_path})
+                mengpaidict[k] = v
+            else:
+                print(f'can not find file. fileName: {fileName}')
+        except:
+            print(f'not invalid item {v}')
+    # with open(f'{root_path}/mengpai.json', "w") as wf:
+    #     json.dump(mengpaidict, wf, ensure_ascii=False)
+    return items
 
 def coqui(root_path, meta_file, ignored_speakers=None):
     """Interal dataset formatter."""
